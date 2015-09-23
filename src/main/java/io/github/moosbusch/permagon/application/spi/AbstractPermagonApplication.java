@@ -28,7 +28,6 @@ import javafx.stage.Stage;
 import javafx.util.Builder;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
-import org.apache.felix.framework.Felix;
 
 /**
  *
@@ -65,11 +64,6 @@ public abstract class AbstractPermagonApplication<T extends PermagonApplicationC
     }
 
     @Override
-    public final Felix getFramework() {
-        return getApplicationContext().getBean(Felix.class);
-    }
-
-    @Override
     public final void start(Stage stage) throws Exception {
         final T ctx = getApplicationContext();
         URL fxmlFileUrl = getFXMLConfigurationFile();
@@ -103,6 +97,7 @@ public abstract class AbstractPermagonApplication<T extends PermagonApplicationC
         processScene(scene);
 
         stage.setScene(scene);
+        stage.onShowingProperty().addListener(getApplicationContext().getFxmlFieldInjector());
         stage.show();
     }
 

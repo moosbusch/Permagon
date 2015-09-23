@@ -350,9 +350,11 @@ import javafx.util.converter.PercentageStringConverter;
 import javafx.util.converter.ShortStringConverter;
 import javafx.util.converter.TimeStringConverter;
 import netscape.javascript.JSException;
-import org.apache.felix.framework.Felix;
+import org.osgi.framework.launch.Framework;
 
 public interface JavaFXBeanConfiguration {
+
+    public Framework createFramework();
 
     public JFXPanel createJFXPanel();
 
@@ -587,8 +589,6 @@ public interface JavaFXBeanConfiguration {
     public Side createSide();
 
     public BigDecimalStringConverter createBigDecimalStringConverter();
-
-    public Felix createFelix();
 
     public BoundingBox createBoundingBox();
 

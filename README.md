@@ -1,2 +1,2 @@
 # Permagon
-A framework combining JavaFX and the power of the Spring framework
+A framework combining the power of JavaFX, OSGi and the Spring framework

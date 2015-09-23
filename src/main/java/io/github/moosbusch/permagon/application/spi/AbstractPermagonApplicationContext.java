@@ -18,10 +18,21 @@ package io.github.moosbusch.permagon.application.spi;
 import io.github.moosbusch.permagon.application.PermagonApplication;
 import io.github.moosbusch.permagon.application.PermagonApplicationContext;
 import io.github.moosbusch.permagon.configuration.JavaFXBeanConfiguration;
+import io.github.moosbusch.permagon.util.FxmlFieldInjector;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.launch.Framework;
+import org.osgi.util.tracker.BundleTracker;
+import org.osgi.util.tracker.ServiceTracker;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -33,7 +44,13 @@ public abstract class AbstractPermagonApplicationContext
         extends AnnotationConfigApplicationContext
         implements PermagonApplicationContext {
 
+    private final FxmlFieldInjector fxmlFieldInjector;
+    private BundleContext bundleCtx;
+    private BundleTracker allBundlesTracker;
+    private ServiceTracker allServiceTracker;
+
     public AbstractPermagonApplicationContext(PermagonApplication<? extends PermagonApplicationContext> application) {
+        this.fxmlFieldInjector = new FxmlFieldInjector(this);
         init(Objects.requireNonNull(application));
     }
 
@@ -46,6 +63,11 @@ public abstract class AbstractPermagonApplicationContext
             loadAnnotationConfig(application);
         } finally {
             refresh();
+        }
+        try {
+            initFrameWork();
+        } catch (BundleException ex) {
+            Logger.getLogger(AbstractPermagonApplicationContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -70,8 +92,23 @@ public abstract class AbstractPermagonApplicationContext
         }
 
         throw new IllegalStateException(
-                "No configuration-class of type 'PivotBeanConfiguration' is defined!");
+                "No configuration-class of type 'JavaFXBeanConfiguration' is defined!");
 
+    }
+
+    private void initFrameWork() throws BundleException {
+        getFramework().init(new FrameworkListenerImpl());
+        getFramework().start();
+    }
+
+    protected <S> S addingServiceImpl(ServiceReference reference) {
+        Object result = getBundleContext().getService(reference);
+
+        if (result != null) {
+            return (S) getBundleContext().getService(reference);
+        }
+
+        return null;
     }
 
     protected boolean isValidBeanConfigurationClasses(
@@ -115,77 +152,42 @@ public abstract class AbstractPermagonApplicationContext
 
     @Override
     public final PermagonApplication<? extends PermagonApplicationContext> getApplication() {
-        return (PermagonApplication<? extends PermagonApplicationContext>)
-                getBean(APPLICATION_BEAN_NAME);
+        return (PermagonApplication<? extends PermagonApplicationContext>) getBean(APPLICATION_BEAN_NAME);
     }
 
-//    private class WindowStateListenerImpl extends WindowStateListener.Adapter {
-//
-//        @Override
-//        public Vote previewWindowOpen(Window window) {
-//            for (String key : getBeanDefinitionNames()) {
-//                final Object value = Objects.requireNonNull(getBean(key));
-//
-//                if (value instanceof Bindable) {
-//                    org.apache.pivot.wtk.ApplicationContext.queueCallback(new BindingCallback(AbstractPermagonApplicationContext.this, (Bindable) value));
-//                }
-//            }
-////            for (String key : getComponents()) {
-////                final Object value = Objects.requireNonNull(getBean(key));
-////
-////                if (value instanceof Bindable) {
-////                    org.apache.pivot.wtk.ApplicationContext.queueCallback(
-////                            new BindingCallback(AbstractLumpiApplicationContext.this, (Bindable) value));
-////                }
-////            }
-//            return super.previewWindowOpen(window);
-//        }
-//
-//    }
+    @Override
+    public Framework getFramework() {
+        return getBean(Framework.class);
+    }
 
-//    private class BindingCallback implements Runnable {
-//
-//        private final Bindable target;
-//
-//        public BindingCallback(ApplicationContext applicationContext, Bindable target) {
-//            this.target = target;
-//        }
-//
-//        @Override
-//        public void run() {
-//            try {
-//                bind(AbstractPermagonApplicationContext.this, target);
-//            } catch (IllegalAccessException ex) {
-//                Logger.getLogger(AbstractPermagonApplicationContext.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
-//
-//        public void bind(ApplicationContext applicationContext, Bindable bean) throws IllegalAccessException {
-//            Field[] fields = bean.getClass().getDeclaredFields();
-//
-//            for (Field field : fields) {
-//                if (field.isAnnotationPresent(BXML.class)) {
-//                    String fieldName = field.getName();
-//                    int fieldModifiers = field.getModifiers();
-//                    BXML bindingAnnotation = field.getAnnotation(BXML.class);
-//                    if ((fieldModifiers & Modifier.FINAL) > 0) {
-//                        throw new IllegalAccessException(fieldName + " is final.");
-//                    }
-//                    if ((fieldModifiers & Modifier.PUBLIC) == 0) {
-//                        field.setAccessible(true);
-//                    }
-//                    String id = bindingAnnotation.id();
-//                    if (StringUtils.isBlank(id) || id.equals("\0")) {
-//                        id = field.getName();
-//                    }
-//                    if (applicationContext.containsBean(id)) {
-//                        Object value = applicationContext.getBean(id);
-//                        FieldUtils.writeDeclaredField(target, id, value, true);
-//                    }
-//                }
-//            }
-//        }
-//
-//    }
+    @Override
+    public FxmlFieldInjector getFxmlFieldInjector() {
+        return fxmlFieldInjector;
+    }
 
+    @Override
+    public BundleContext getBundleContext() {
+        return bundleCtx;
+    }
+
+    @Override
+    public final Object addingService(ServiceReference reference) {
+        Object service = addingServiceImpl(reference);
+        getBeanFactory().registerSingleton(service.getClass().getSimpleName() + "Service", service);
+        return service;
+    }
+
+    private class FrameworkListenerImpl implements FrameworkListener {
+
+        @Override
+        public void frameworkEvent(FrameworkEvent event) {
+            BundleContext ctx = Objects.requireNonNull(event.getBundle().getBundleContext());
+            AbstractPermagonApplicationContext.this.bundleCtx = ctx;
+            AbstractPermagonApplicationContext.this.allBundlesTracker = new BundleTracker(
+                    ctx, 0, AbstractPermagonApplicationContext.this);
+            AbstractPermagonApplicationContext.this.allServiceTracker = new ServiceTracker(
+                    ctx, Object.class, AbstractPermagonApplicationContext.this);
+        }
+
+    }
 }

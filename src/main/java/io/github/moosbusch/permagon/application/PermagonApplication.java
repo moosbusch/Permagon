@@ -17,7 +17,6 @@ package io.github.moosbusch.permagon.application;
 
 import java.net.URL;
 import java.util.Collection;
-import org.apache.felix.framework.Felix;
 
 /**
  *
@@ -33,8 +32,6 @@ public interface PermagonApplication<T extends PermagonApplicationContext> {
     public Collection<String> getBeanConfigurationPackages();
 
     public URL getFXMLConfigurationFile();
-
-    public Felix getFramework();
 
     public T getApplicationContext();
 

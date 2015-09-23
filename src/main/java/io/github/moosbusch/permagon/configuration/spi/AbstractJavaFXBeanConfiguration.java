@@ -356,6 +356,7 @@ import javafx.util.converter.ShortStringConverter;
 import javafx.util.converter.TimeStringConverter;
 import netscape.javascript.JSException;
 import org.apache.felix.framework.Felix;
+import org.osgi.framework.launch.Framework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -365,6 +366,14 @@ import org.springframework.context.annotation.Scope;
 
 @Configuration
 public abstract class AbstractJavaFXBeanConfiguration implements JavaFXBeanConfiguration {
+
+    @Lazy
+    @Bean
+    @Override
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Framework createFramework() {
+        return new Felix(new HashMap<>());
+    }
 
     @Lazy
     @Bean
@@ -1288,14 +1297,6 @@ public abstract class AbstractJavaFXBeanConfiguration implements JavaFXBeanConfi
     @Scope(BeanDefinition.SCOPE_PROTOTYPE)
     public BigDecimalStringConverter createBigDecimalStringConverter() {
         return new BigDecimalStringConverter();
-    }
-
-    @Lazy
-    @Bean
-    @Override
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public Felix createFelix() {
-        return new Felix(new HashMap<>());
     }
 
     @Lazy

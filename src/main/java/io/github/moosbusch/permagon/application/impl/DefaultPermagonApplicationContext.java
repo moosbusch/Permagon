@@ -20,8 +20,15 @@ import io.github.moosbusch.permagon.application.PermagonApplicationContext;
 import io.github.moosbusch.permagon.application.spi.AbstractPermagonApplicationContext;
 import io.github.moosbusch.permagon.configuration.impl.DefaultPermagonBuilder;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.util.Builder;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 
 /**
  *
@@ -45,7 +52,33 @@ public class DefaultPermagonApplicationContext extends AbstractPermagonApplicati
     }
 
     @Override
+    public void modifiedService(ServiceReference reference, Object service) {
+    }
+
+    @Override
+    public void removedService(ServiceReference reference, Object service) {
+    }
+
+    @Override
+    public Object addingBundle(Bundle bundle, BundleEvent event) {
+        return bundle;
+    }
+
+    @Override
+    public void modifiedBundle(Bundle bundle, BundleEvent event, Object object) {
+    }
+
+    @Override
+    public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
+    }
+
+    @Override
     public void shutdownContext() {
+        try {
+            getFramework().stop();
+        } catch (BundleException ex) {
+            Logger.getLogger(DefaultPermagonApplicationContext.class.getName()).log(Level.SEVERE, null, ex);
+        }
         Platform.exit();
         System.exit(0);
     }

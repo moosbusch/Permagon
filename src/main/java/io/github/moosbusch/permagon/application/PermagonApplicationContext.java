@@ -15,8 +15,13 @@
  */
 package io.github.moosbusch.permagon.application;
 
+import io.github.moosbusch.permagon.util.FxmlFieldInjector;
 import java.util.ResourceBundle;
 import javafx.util.Builder;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.launch.Framework;
+import org.osgi.util.tracker.BundleTrackerCustomizer;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -24,7 +29,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author moosbusch
  */
 public interface PermagonApplicationContext
-        extends ConfigurableApplicationContext {
+        extends ConfigurableApplicationContext, BundleTrackerCustomizer, ServiceTrackerCustomizer {
 
     public static final String APPLICATION_BEAN_NAME = "applicationBean";
     public static final String FRAMEWORK_BEAN_NAME = "frameworkBean";
@@ -40,6 +45,12 @@ public interface PermagonApplicationContext
 
     public PermagonApplication<? extends PermagonApplicationContext> getApplication();
 
+    public Framework getFramework();
+
+    public FxmlFieldInjector getFxmlFieldInjector();
+
     public void shutdownContext();
+
+    public BundleContext getBundleContext();
 
 }
