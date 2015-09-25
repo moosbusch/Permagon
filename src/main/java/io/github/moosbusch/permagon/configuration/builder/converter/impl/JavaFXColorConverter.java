@@ -39,26 +39,4 @@ public class JavaFXColorConverter extends AbstractJavaFXFromStringConverter<Colo
         return Color.valueOf(constraint);
     }
 
-//    @Override
-//    public <T> T convert(Class<T> type, Object value) {
-//        T result = null;
-//
-//        if (Color.class.isAssignableFrom(type)) {
-//            if (value instanceof Color) {
-//                result = (T) value;
-//            } else if (value instanceof String) {
-//                String val = value.toString();
-//
-//                val = StringUtils.replace(val.toUpperCase(), "COLOR.", "");
-//
-//                result = (T) Color.valueOf(val);
-//            }
-//
-//            return result;
-//        }
-//
-//        throw new IllegalArgumentException("Cannot covert object of type " +
-//                type.getName() + ". Exspected 'javafx.scene.paint.Color'." );
-//    }
-
 }
