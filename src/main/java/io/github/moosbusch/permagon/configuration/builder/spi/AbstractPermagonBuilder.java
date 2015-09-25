@@ -102,6 +102,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
@@ -261,6 +262,21 @@ public abstract class AbstractPermagonBuilder implements Map<String, Object>, Pe
         }
     }
 
+    protected void buildTab(Tab pane) {
+        if (containsKey(NODE_CONTENT_PROPERTY)) {
+            Object obj = Objects.requireNonNull(get(NODE_CONTENT_PROPERTY));
+
+            if (obj instanceof ObservableMap) {
+                ObservableMap propertiesMap = (ObservableMap) obj;
+                Object childrenObj = Objects.requireNonNull(propertiesMap.get(NODE_CONTENT_PROPERTY));
+
+                if (childrenObj instanceof Node) {
+                    pane.setContent((Node) childrenObj);
+                }
+            }
+        }
+    }
+
     protected void buildSplitPane(SplitPane pane) {
         if (containsKey(NODE_ITEMS_PROPERTY)) {
             Object obj = Objects.requireNonNull(get(NODE_ITEMS_PROPERTY));
@@ -392,7 +408,7 @@ public abstract class AbstractPermagonBuilder implements Map<String, Object>, Pe
 
                 result = childrenValueList;
 
-                if (value instanceof Node) {
+                if ((value instanceof Node) || (value instanceof Tab)) {
                     if (!childrenValueList.contains(value)) {
                         childrenValueList.add(value);
                         properties.put(propertyName, childrenValueList);
@@ -437,6 +453,9 @@ public abstract class AbstractPermagonBuilder implements Map<String, Object>, Pe
         } else if (result instanceof TabPane) {
             TabPane resultPane = (TabPane) result;
             buildTabPane(resultPane);
+        } else if (result instanceof Tab) {
+            Tab resultPane = (Tab) result;
+            buildTab(resultPane);
         } else if (result instanceof ButtonBar) {
             ButtonBar resultPane = (ButtonBar) result;
             buildButtonBar(resultPane);
@@ -494,6 +513,8 @@ public abstract class AbstractPermagonBuilder implements Map<String, Object>, Pe
                         return result = putListProperty(NODE_CHILDREN_PROPERTY, value);
                     case NODE_ITEMS_PROPERTY:
                         return result = putListProperty(NODE_ITEMS_PROPERTY, value);
+                    case NODE_TABS_PROPERTY:
+                        return result = putListProperty(NODE_TABS_PROPERTY, value);
             }
         }
 
