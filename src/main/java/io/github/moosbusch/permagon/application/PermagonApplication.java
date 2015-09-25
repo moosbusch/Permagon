@@ -27,6 +27,8 @@ public interface PermagonApplication<T extends PermagonApplicationContext> {
 
     public static final String PRIMARY_SCENE_QUALIFIER = "primaryScene";
 
+    public boolean canCloseStage();
+
     public Collection<Class<?>> getBeanConfigurationClasses();
 
     public Collection<String> getBeanConfigurationPackages();

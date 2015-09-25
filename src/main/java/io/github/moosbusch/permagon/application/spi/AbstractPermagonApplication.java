@@ -21,10 +21,12 @@ import io.github.moosbusch.permagon.configuration.controller.PermagonController;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Builder;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
@@ -35,7 +37,7 @@ import javafx.util.Callback;
  * @param <T> The application-context
  */
 public abstract class AbstractPermagonApplication<T extends PermagonApplicationContext>
-    extends Application implements PermagonApplication<T> {
+        extends Application implements PermagonApplication<T> {
 
     private final T applicationContext;
 
@@ -56,6 +58,11 @@ public abstract class AbstractPermagonApplication<T extends PermagonApplicationC
     }
 
     protected void processStage(Stage stage) {
+    }
+
+    @Override
+    public boolean canCloseStage() {
+        return true;
     }
 
     @Override
@@ -96,6 +103,15 @@ public abstract class AbstractPermagonApplication<T extends PermagonApplicationC
         Scene scene = new Scene(root);
         processScene(scene);
 
+        stage.setOnCloseRequest(
+                new EventHandler<WindowEvent>() {
+                    public void handle(final WindowEvent event) {
+                        if (canCloseStage()) {
+                            event.consume();
+                            getApplicationContext().shutdownContext();
+                        }
+                    }
+                });
         stage.setScene(scene);
         stage.onShowingProperty().addListener(getApplicationContext().getFxmlFieldInjector());
         stage.show();
