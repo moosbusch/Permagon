@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
  *
  * @author Gunnar Kappei
  */
-public class PermagonController extends AbstractPermagonController {
+public class DefaultPermagonController extends AbstractPermagonController {
 
     @Override
     protected void initializeImpl(URL location, ResourceBundle resources) {

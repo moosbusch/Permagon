@@ -32,6 +32,7 @@ public interface PermagonBuilder<T> extends Builder<T>, Map<String, Object> {
     public static final String NODE_BUTTONS_PROPERTY = "buttons";
     public static final String NODE_PANES_PROPERTY = "panes";
     public static final String NODE_MENUS_PROPERTY = "menus";
+    public static final String NODE_CONTENT_PROPERTY = "content";
 
     public void getConverter(Class<?> key);
 
